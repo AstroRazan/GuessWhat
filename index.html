@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>GuessWhat — Human vs AI: Who Guesses Faster?</title>
+  <meta name="description" content="A fast-paced sketch guessing showdown between a human contestant and a 20-class CNN AI model!">
+
+  <!-- =========================================================================
+       TEAM LINKEDIN LINKS — Update these 3 constants when URLs are ready:
+       ========================================================================= -->
+  <script>
+    const RAZAN_LINKEDIN = "#";
+    const JOUD_LINKEDIN  = "#";
+    const HAYAT_LINKEDIN = "#";
+  </script>
+
+  <!-- Google Fonts: Baloo 2 (friendly display) & Nunito (rounded sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+
+  <!-- MediaPipe Tasks Vision (Modern HandLandmarker) via ESM CDN -->
+  <script type="module">
+    import { FilesetResolver, HandLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
+    window.FilesetResolver = FilesetResolver;
+    window.HandLandmarker = HandLandmarker;
+    window.dispatchEvent(new CustomEvent('mediapipe-tasks-ready'));
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <div class="site-wrapper">
+
+    <!-- ====================================================================
+         TOP NAVIGATION BAR
+         ==================================================================== -->
+    <header class="site-header">
+      <div class="header-container">
+        <!-- Brand with Pencil Icon -->
+        <a href="#home" class="brand-link" id="navBrand">
+          <span class="brand-pencil" aria-hidden="true">✏️</span>
+          <span class="brand-name">GuessWhat</span>
+        </a>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button class="nav-toggle-btn" id="btnNavToggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="hamburger-icon">☰</span>
+          <span class="menu-label">Menu</span>
+        </button>
+
+        <!-- Navigation Buttons -->
+        <nav class="nav-links" id="navLinksMenu">
+          <button class="nav-btn" id="btnNavHowToPlay" type="button">
+            <span class="nav-icon">📖</span>
+            <span>How to play</span>
+          </button>
+          <button class="nav-btn" id="btnNavLeaderboard" type="button">
+            <span class="nav-icon">🏆</span>
+            <span>Leaderboard</span>
+          </button>
+          <button class="nav-btn" id="btnNavTeam" type="button">
+            <span class="nav-icon">👥</span>
+            <span>Team</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+
+    <!-- ====================================================================
+         1. HOME SCREEN (Fits on one screen on desktop)
+         ==================================================================== -->
+    <main class="main-content">
+      <section class="screen home-screen active" id="screenHome">
+        
+        <!-- HERO CARD -->
+        <div class="home-hero-card">
+          <!-- Washi tape stickers on top corners -->
+          <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+          <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+
+          <!-- Hero Badge -->
+          <div class="hero-chip">⚡ Human vs AI Showdown</div>
+
+          <!-- Main Title with Yellow Highlighter -->
+          <h1 class="hero-title">
+            <span class="highlight-marker">Draw it. Guess it</span> before the AI does.
+          </h1>
+
+          <p class="hero-subtitle">
+            One player draws in the air with gestures or on paper with a pen. You and our CNN model race live to guess the sketch first!
+          </p>
+
+          <!-- Primary Actions -->
+          <div class="hero-actions">
+            <button class="btn btn-yellow btn-hero" id="btnStartGame" type="button" disabled>
+              <span>Loading the AI... 🧠</span>
+            </button>
+            <button class="btn btn-card-action btn-large" id="btnInviteFriends" type="button">
+              <span>Invite friends 🔗</span>
+            </button>
+          </div>
+
+          <!-- Model Loading Error Banner (hidden by default) -->
+          <div class="model-error-banner hidden" id="modelErrorBanner" role="alert"></div>
+
+          <!-- Lifetime Record Pill -->
+          <div class="lifetime-pill" id="homeLifetimeRecord">
+            <span class="pill-label">🏆 Match Record:</span>
+            <span class="pill-stat pill-human" id="homeHumanWins">Human: 0</span>
+            <span class="pill-vs">vs</span>
+            <span class="pill-stat pill-ai" id="homeAiWins">AI: 0</span>
+          </div>
+        </div>
+
+        <!-- 5 TILE BUTTONS ROW (Desktop: 5 in a row, Tablet: 3+2, Mobile: 2 cols) -->
+        <nav class="home-tiles-row" aria-label="Game guide tiles">
+          <!-- Tile 1: How it works -->
+          <button type="button" class="home-tile-btn tile-works" id="btnTileWorks">
+            <span class="tile-icon">💡</span>
+            <span class="tile-title">How it works</span>
+            <span class="tile-sub">3 roles: Drawer, YOU &amp; AI</span>
+          </button>
+
+          <!-- Tile 2: Controls -->
+          <button type="button" class="home-tile-btn tile-controls" id="btnTileControls">
+            <span class="tile-icon">🤏</span>
+            <span class="tile-title">Controls</span>
+            <span class="tile-sub">Air gestures &amp; Pen mode</span>
+          </button>
+
+          <!-- Tile 3: Rules -->
+          <button type="button" class="home-tile-btn tile-rules" id="btnTileRules">
+            <span class="tile-icon">📜</span>
+            <span class="tile-title">Game Rules</span>
+            <span class="tile-sub">5 rounds, 60s, 70% threshold</span>
+          </button>
+
+          <!-- Tile 4: The 20 words -->
+          <button type="button" class="home-tile-btn tile-words" id="btnTileWords">
+            <span class="tile-icon">🎨</span>
+            <span class="tile-title">The 20 Words</span>
+            <span class="tile-sub">All doodle categories</span>
+          </button>
+
+          <!-- Tile 5: Meet the model -->
+          <button type="button" class="home-tile-btn tile-model" id="btnTileModel">
+            <span class="tile-icon">🧠</span>
+            <span class="tile-title">Meet the Model</span>
+            <span class="tile-sub">CNN Quick, Draw! specs</span>
+          </button>
+        </nav>
+
+      </section>
+
+
+      <!-- ====================================================================
+           2. GAME SCREEN (RESPONSIVE 3-CARD LAYOUT)
+           ==================================================================== -->
+      <section class="screen game-screen hidden" id="screenGame">
+        <div class="game-cards-container">
+
+          <!-- ---------------------------------------------------------------
+               LEFT CARD: THE MODEL (AI)
+               --------------------------------------------------------------- -->
+          <aside class="game-card card-the-model" id="cardTheModel">
+            <div class="card-tag tag-model">
+              <span class="tag-icon">🤖</span>
+              <span>THE MODEL</span>
+            </div>
+
+            <!-- AI Score Section -->
+            <div class="card-score-block">
+              <span class="score-label">SCORE</span>
+              <div class="score-display score-model-color" id="scoreAi">0</div>
+            </div>
+
+            <!-- AI Live Status Pill -->
+            <div class="ai-status-container">
+              <span class="section-label">STATUS</span>
+              <div class="ai-status-pill status-idle" id="aiStatusPill">WAITING FOR DRAWING</div>
+            </div>
+
+            <!-- Live Top Guesses -->
+            <div class="ai-guesses-section">
+              <div class="guesses-header">
+                <span class="section-label">TOP GUESSES</span>
+                <span class="confidence-threshold-tag">Threshold: 70%</span>
+              </div>
+
+              <div class="ai-guesses-list" id="aiGuessesList">
+                <div class="ai-guess-item" id="aiGuessRow0">
+                  <div class="guess-meta">
+                    <span class="guess-label" id="aiGuessLabel0">—</span>
+                    <span class="guess-prob" id="aiGuessProb0">0%</span>
+                  </div>
+                  <div class="guess-bar-track">
+                    <div class="guess-bar-fill" id="aiGuessBar0" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <div class="ai-guess-item" id="aiGuessRow1">
+                  <div class="guess-meta">
+                    <span class="guess-label" id="aiGuessLabel1">—</span>
+                    <span class="guess-prob" id="aiGuessProb1">0%</span>
+                  </div>
+                  <div class="guess-bar-track">
+                    <div class="guess-bar-fill" id="aiGuessBar1" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <div class="ai-guess-item" id="aiGuessRow2">
+                  <div class="guess-meta">
+                    <span class="guess-label" id="aiGuessLabel2">—</span>
+                    <span class="guess-prob" id="aiGuessProb2">0%</span>
+                  </div>
+                  <div class="guess-bar-track">
+                    <div class="guess-bar-fill" id="aiGuessBar2" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mini AI Vision Preview (28x28) -->
+            <div class="ai-vision-box">
+              <div class="vision-header">
+                <span>What the AI sees (28×28)</span>
+              </div>
+              <div class="vision-canvas-wrap">
+                <canvas id="aiVisionCanvas" width="56" height="56"></canvas>
+              </div>
+            </div>
+          </aside>
+
+
+          <!-- ---------------------------------------------------------------
+               CENTER CARD: CAMERA / DRAWING AREA & HINT
+               --------------------------------------------------------------- -->
+          <main class="game-card card-main-stage" id="cardMainStage">
+            <!-- Washi tape stickers on top edges -->
+            <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+            <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+
+            <!-- Stage Header: Round, Mode Switcher, Timer -->
+            <div class="stage-header">
+              <div class="stage-pill pill-round" id="gameRoundBadge">Round 1 of 5</div>
+
+              <!-- Mode Toggle: Camera / Pen Switcher -->
+              <div class="mode-toggle" id="modeToggleGroup" role="group" aria-label="Drawing mode">
+                <button type="button" class="mode-btn active" id="btnModeCamera" title="Draw in the air using camera">
+                  <span class="mode-icon">📹</span>
+                  <span>Camera</span>
+                </button>
+                <button type="button" class="mode-btn" id="btnModePen" title="Draw with pen, mouse, or touch">
+                  <span class="mode-icon">✏️</span>
+                  <span>Pen</span>
+                </button>
+              </div>
+
+              <!-- Round Timer Pill -->
+              <div class="stage-pill pill-timer" id="gameTimerPill">
+                <span class="timer-icon">⏱️</span>
+                <span class="timer-seconds" id="gameTimerText">60s</span>
+              </div>
+            </div>
+
+            <!-- Drawing Stage Viewport -->
+            <div class="stage-viewport" id="stageContainer">
+              <video id="webcam" playsinline autoplay muted></video>
+              <canvas id="overlayCanvas"></canvas>
+              <canvas id="penCanvas" class="pen-canvas"></canvas>
+
+              <!-- Transparent 640x480 AI Ink Canvas for Predictor (Offscreen / Hidden) -->
+              <canvas id="aiInkCanvas" width="640" height="480" class="ink-canvas-hidden"></canvas>
+
+              <!-- In-Stage Floating Gesture HUD (Camera mode) -->
+              <div class="gesture-hud-pill" id="hudGesturePill">
+                <span class="hud-icon" id="hudIcon">✋</span>
+                <span class="hud-text" id="hudLabel">Move hand into frame</span>
+              </div>
+
+              <!-- In-Stage Canvas Controls Toolbar -->
+              <div class="canvas-controls-bar">
+                <button type="button" class="btn-canvas-action" id="btnClear" title="Clear canvas (or press 'C' / hold open palm)">
+                  <span>🗑️ Clear</span>
+                </button>
+              </div>
+
+              <!-- 1. Secret Word Reveal Overlay (3s Countdown for Drawer) -->
+              <div class="reveal-overlay hidden" id="revealOverlay">
+                <div class="reveal-card">
+                  <div class="reveal-tag">🙈 CONTESTANT, LOOK AWAY!</div>
+                  <p class="reveal-instruction">Only the Drawer should look at the screen right now.</p>
+
+                  <div class="secret-word-display">
+                    <span class="secret-word-label">Your Secret Word:</span>
+                    <span class="secret-word-value" id="revealWordText">CAT</span>
+                  </div>
+
+                  <div class="reveal-countdown-ring">
+                    <span class="countdown-number" id="revealSeconds">3</span>
+                    <span class="countdown-caption">Round starting...</span>
+                  </div>
+
+                  <button type="button" class="btn btn-yellow btn-sm" id="btnSkipReveal">
+                    <span>I'm Ready (Start Now)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2. Round Over Result Overlay -->
+              <div class="round-over-overlay hidden" id="roundOverOverlay">
+                <div class="round-over-card">
+                  <div class="round-winner-trophy" id="roundWinnerIcon">🏆</div>
+                  <h2 class="round-winner-title" id="roundWinnerTitle">Round Won!</h2>
+                  <p class="round-winner-detail" id="roundWinnerDetail">Guessed in 4.2s</p>
+
+                  <div class="round-over-actions">
+                    <button type="button" class="btn btn-yellow btn-large" id="btnNextRound">
+                      <span>Next Round ➔</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Camera Unavailable Fallback Notice -->
+              <div class="camera-fallback-overlay hidden" id="cameraFallback">
+                <div class="fallback-card">
+                  <div class="fallback-icon">📷</div>
+                  <h3>Camera Unavailable</h3>
+                  <p>Allow webcam access to air-draw, or switch to <strong>Pen Mode</strong> to draw on paper!</p>
+                  <div class="fallback-btns">
+                    <button type="button" class="btn btn-yellow" id="btnRetryCamera">Retry Camera</button>
+                    <button type="button" class="btn btn-card-action" id="btnFallbackToPen">Use Pen Mode</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hint Under the Drawing (Blank letter boxes + count) -->
+            <div class="drawing-hint-container" id="drawingHintArea">
+              <div class="hint-header">
+                <span class="hint-title">WORD HINT</span>
+                <span class="letters-count-pill" id="letterCountIndicator">5 letters</span>
+              </div>
+
+              <!-- Dynamic Blank Boxes Row -->
+              <div class="letter-boxes-row" id="letterBoxesRow">
+                <!-- Dynamically populated with .letter-box elements -->
+              </div>
+            </div>
+          </main>
+
+
+          <!-- ---------------------------------------------------------------
+               RIGHT CARD: YOU (SCORE BLOCK)
+               --------------------------------------------------------------- -->
+          <aside class="game-card card-the-human-score" id="cardTheHumanScore">
+            <div class="card-tag tag-human">
+              <span class="tag-icon">👤</span>
+              <span id="labelPlayerCardName">YOU</span>
+            </div>
+
+            <!-- Human Score Section -->
+            <div class="card-score-block">
+              <span class="score-label">SCORE</span>
+              <div class="score-display score-human-color" id="scoreHuman">0</div>
+            </div>
+
+            <!-- Desktop Quit button in score column -->
+            <div class="human-score-footer desktop-only">
+              <button type="button" class="btn-quit" id="btnAbandonGameDesktop">
+                <span>Quit match</span>
+              </button>
+            </div>
+          </aside>
+
+
+          <!-- ---------------------------------------------------------------
+               GUESS INPUT CARD (Full width on mobile, right column on desktop)
+               --------------------------------------------------------------- -->
+          <section class="game-card card-guess-box" id="cardGuessBox">
+            <h3 class="guess-prompt-title">What is it?</h3>
+
+            <form class="guess-form" id="guessForm" autocomplete="off" onsubmit="return false;">
+              <div class="guess-input-wrap">
+                <input
+                  type="text"
+                  id="humanGuessInput"
+                  class="guess-input"
+                  placeholder="Type your guess..."
+                  maxlength="30"
+                  autocomplete="off"
+                  spellcheck="false"
+                >
+              </div>
+              <button type="submit" class="btn btn-yellow btn-guess" id="btnSubmitGuess">
+                <span>Guess ↵</span>
+              </button>
+            </form>
+
+            <!-- Feedback message -->
+            <div class="guess-feedback" id="humanGuessFeedback">
+              Type your guess &amp; hit Enter!
+            </div>
+
+            <!-- Recent Guesses History in this Round -->
+            <div class="recent-guesses-container" id="recentGuessesContainer">
+              <span class="recent-guesses-label">Your Guesses:</span>
+              <div class="guess-chips-list" id="guessChipsList">
+                <!-- Chips appended dynamically -->
+              </div>
+            </div>
+
+            <!-- Mobile Quit button -->
+            <div class="guess-box-footer mobile-only">
+              <button type="button" class="btn-quit" id="btnAbandonGame">
+                <span>Quit match</span>
+              </button>
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+
+      <!-- ====================================================================
+           3. RESULTS SCREEN
+           ==================================================================== -->
+      <section class="screen results-screen hidden" id="screenResults">
+        <div class="results-card">
+          <!-- Washi tape stickers -->
+          <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+          <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+
+          <!-- Champion Header -->
+          <div class="champion-banner" id="championCard">
+            <div class="champion-trophy" id="championTrophy">🏆</div>
+            <h1 class="champion-title" id="championTitle">YOU WIN THE MATCH!</h1>
+            <p class="champion-subtitle" id="championSub">Brilliant guessing! You beat the AI model.</p>
+            <!-- Saved to Leaderboard Banner with Player Rank -->
+            <div class="leaderboard-saved-banner" id="resLeaderboardBanner">
+              <span class="saved-banner-icon">🏅</span>
+              <span class="saved-banner-text">Saved to the leaderboard!</span>
+              <span class="saved-rank-tag" id="resLeaderboardRank">Rank #1</span>
+            </div>
+          </div>
+
+          <!-- Match Scoreboard Comparison -->
+          <div class="match-recap-grid">
+            <div class="recap-side side-human">
+              <div class="side-tag tag-human">👤 <span id="resHumanLabel">YOU</span></div>
+              <div class="side-final-score" id="resHumanScore">3</div>
+              <div class="side-speed">Avg Guess Time: <strong id="resHumanAvgTime">4.2s</strong></div>
+            </div>
+
+            <div class="recap-vs-badge">VS</div>
+
+            <div class="recap-side side-model">
+              <div class="side-tag tag-model">🤖 THE MODEL</div>
+              <div class="side-final-score" id="resAiScore">2</div>
+              <div class="side-speed">Avg Guess Time: <strong id="resAiAvgTime">5.8s</strong></div>
+            </div>
+          </div>
+
+          <!-- 5-Round Match Breakdown Table -->
+          <div class="match-breakdown-card">
+            <h3 class="breakdown-title">5-Round Match Breakdown</h3>
+            <div class="table-wrap">
+              <table class="notebook-table">
+                <thead>
+                  <tr>
+                    <th>Round</th>
+                    <th>Secret Word</th>
+                    <th>Winner</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody id="recapTableBody">
+                  <!-- Generated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lifetime Stats -->
+          <div class="saved-stats-card">
+            <h4 class="saved-stats-title">💾 Saved Match History (localStorage)</h4>
+            <div class="saved-stats-grid">
+              <div class="stat-cell">
+                <span class="cell-val" id="lifeHumanWins">0</span>
+                <span class="cell-lbl">Human Wins</span>
+              </div>
+              <div class="stat-cell">
+                <span class="cell-val" id="lifeAiWins">0</span>
+                <span class="cell-lbl">AI Wins</span>
+              </div>
+              <div class="stat-cell">
+                <span class="cell-val" id="lifeTies">0</span>
+                <span class="cell-lbl">Ties</span>
+              </div>
+              <div class="stat-cell">
+                <span class="cell-val" id="lifeTotalGames">0</span>
+                <span class="cell-lbl">Matches Played</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Actions -->
+          <div class="results-actions">
+            <button type="button" class="btn btn-yellow btn-hero" id="btnPlayAgain">
+              <span>Play Again! (5 Rounds) 🔄</span>
+            </button>
+            <button type="button" class="btn btn-card-action" id="btnBackHome">
+              <span>Back to Home 🏠</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+
+    <!-- ====================================================================
+         4. POPUPS (MODALS FOR THE 5 HOME SECTIONS & PLAYER NAME)
+         ==================================================================== -->
+
+    <!-- POPUP 0: "What's your name?" (Opened when clicking "Let's play!") -->
+    <div class="modal-backdrop hidden" id="modalPlayerName" role="dialog" aria-modal="true" aria-labelledby="playerNameTitle">
+      <div class="notebook-modal modal-name-dialog">
+        <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+        <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="playerNameTitle">✏️ What's your name?</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            Enter your name or nickname to race against the AI model and save your high score on the leaderboard!
+          </p>
+          <form id="playerNameForm" class="name-entry-form" onsubmit="return false;">
+            <div class="name-input-group">
+              <label for="playerNameInput" class="name-input-label">Player Name (1–15 characters):</label>
+              <input 
+                type="text" 
+                id="playerNameInput" 
+                class="name-input-field" 
+                maxlength="15" 
+                placeholder="Enter your name..." 
+                autocomplete="off" 
+                spellcheck="false" 
+                required 
+              />
+              <div class="name-input-meta">
+                <span class="name-char-count" id="nameCharCount">0 / 15</span>
+              </div>
+            </div>
+            <div class="name-error-msg hidden" id="playerNameError" role="alert">
+              ⚠️ Please enter a name (1 to 15 characters).
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer modal-footer-split">
+          <button type="button" class="btn btn-card-action" data-close="modal">Cancel</button>
+          <button type="button" class="btn btn-yellow btn-large" id="btnConfirmStartGame">
+            <span>Start Game! 🎮</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- POPUP 1: "How it works" (Opened by Tile 1 & Nav "How to play") -->
+    <div class="modal-backdrop hidden" id="modalHowItWorks" role="dialog" aria-modal="true" aria-labelledby="howItWorksTitle">
+      <div class="notebook-modal">
+        <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="howItWorksTitle">💡 How It Works</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            A fast-paced showdown between human intuition and machine learning. Here are the three roles in every match:
+          </p>
+
+          <div class="roles-row modal-roles-list">
+            <!-- 1. The Drawer -->
+            <div class="role-box role-drawer">
+              <div class="role-icon">🎨</div>
+              <h3 class="role-heading">1. The Drawer</h3>
+              <p class="role-text">
+                Draws in the air using hand tracking via webcam, or on a white page using Pen mode. Keeps the secret word hidden from the contestant so only they know what to sketch!
+              </p>
+            </div>
+
+            <!-- 2. YOU (Human) -->
+            <div class="role-box role-human">
+              <div class="role-icon">👤</div>
+              <h3 class="role-heading">2. YOU (Human)</h3>
+              <p class="role-text">
+                Watches the live drawing and races to guess the word by typing it into the guess box before the 60-second timer expires or the AI model beats you to it.
+              </p>
+            </div>
+
+            <!-- 3. THE MODEL (AI) -->
+            <div class="role-box role-model">
+              <div class="role-icon">🤖</div>
+              <h3 class="role-heading">3. THE MODEL (AI)</h3>
+              <p class="role-text">
+                Evaluates the doodle canvas live every 600ms using a convolutional neural network. Wins the round if its top prediction matches the word with at least 70% confidence!
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-yellow" data-close="modal">Got It, Let's Play! 🎮</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POPUP 2: "Controls" (Opened by Tile 2) -->
+    <div class="modal-backdrop hidden" id="modalControls" role="dialog" aria-modal="true" aria-labelledby="controlsTitle">
+      <div class="notebook-modal">
+        <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="controlsTitle">🤏 Controls &amp; Gestures</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            Intuitive gestures for natural air-drawing in front of your camera, powered by MediaPipe hand tracking:
+          </p>
+
+          <div class="controls-grid">
+            <div class="control-card">
+              <div class="control-icon-circle">🤏</div>
+              <h4 class="control-name">Pinch</h4>
+              <span class="control-action-tag tag-draw">Draw</span>
+              <p class="control-desc">Touch your index fingertip and thumb close together to start drawing smooth ink curves.</p>
+            </div>
+
+            <div class="control-card">
+              <div class="control-icon-circle">👆</div>
+              <h4 class="control-name">Fingers Apart</h4>
+              <span class="control-action-tag tag-move">Pen Up</span>
+              <p class="control-desc">Separate your thumb and index finger to move your hand and reposition without drawing.</p>
+            </div>
+
+            <div class="control-card">
+              <div class="control-icon-circle">🖐️</div>
+              <h4 class="control-name">Open Palm</h4>
+              <span class="control-action-tag tag-clear">Clear</span>
+              <p class="control-desc">Spread all five fingers open and hold in view to clear the canvas in an instant.</p>
+            </div>
+          </div>
+
+          <div class="controls-fallback-note">
+            <span class="fallback-note-icon">💡</span>
+            <div class="fallback-note-text">
+              <strong>No camera?</strong> Draw with a pen, mouse or finger in <strong>Pen mode</strong> directly on the white canvas!
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-yellow" data-close="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POPUP 3: "Game Rules" (Opened by Tile 3) -->
+    <div class="modal-backdrop hidden" id="modalRules" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+      <div class="notebook-modal">
+        <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="rulesTitle">📜 Game Rules</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            Everything you need to know before stepping into the arena:
+          </p>
+
+          <div class="rules-grid">
+            <div class="rule-card">
+              <div class="rule-badge">1</div>
+              <div class="rule-body">
+                <strong>5 Rounds per Match</strong>
+                <p>Each showdown lasts exactly 5 rounds. Total scores determine the overall match champion.</p>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-badge">2</div>
+              <div class="rule-body">
+                <strong>60 Seconds Each</strong>
+                <p>A countdown timer runs for 60 seconds per round. If time runs out with no correct guess, neither side scores.</p>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-badge">3</div>
+              <div class="rule-body">
+                <strong>Secret Word for Drawer Only</strong>
+                <p>The word is revealed for 3 seconds before the round starts. The contestant looks away to keep it secret!</p>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-badge">4</div>
+              <div class="rule-body">
+                <strong>First Correct Guess Wins</strong>
+                <p>Whoever (YOU or THE MODEL) correctly identifies the drawing first immediately wins the round point.</p>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-badge">5</div>
+              <div class="rule-body">
+                <strong>Faster Guess = More Points &amp; Speed Record</strong>
+                <p>Lightning-fast guessing clocks your personal best time and boosts your match average speed.</p>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-badge">6</div>
+              <div class="rule-body">
+                <strong>70% AI Confidence Threshold</strong>
+                <p>The AI only answers when it is at least 70% sure. Below 70%, it hesitates and displays <em>"HMM... NOT SURE"</em>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-yellow" data-close="modal">Got It!</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POPUP 4: "The 20 Words" (Opened by Tile 4) -->
+    <div class="modal-backdrop hidden" id="modalTheWords" role="dialog" aria-modal="true" aria-labelledby="theWordsTitle">
+      <div class="notebook-modal modal-large">
+        <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="theWordsTitle">🎨 The 20 Doodle Words</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            All 20 possible doodles recognized by our model from the Google Quick, Draw! dataset:
+          </p>
+
+          <div class="words-grid">
+            <div class="word-tile"><span class="word-icon">☀️</span><span class="word-name">sun</span></div>
+            <div class="word-tile"><span class="word-icon">🐟</span><span class="word-name">fish</span></div>
+            <div class="word-tile"><span class="word-icon">🏠</span><span class="word-name">house</span></div>
+            <div class="word-tile"><span class="word-icon">⭐</span><span class="word-name">star</span></div>
+            <div class="word-tile"><span class="word-icon">☂️</span><span class="word-name">umbrella</span></div>
+            <div class="word-tile"><span class="word-icon">🍎</span><span class="word-name">apple</span></div>
+            <div class="word-tile"><span class="word-icon">🌲</span><span class="word-name">tree</span></div>
+            <div class="word-tile"><span class="word-icon">🚗</span><span class="word-name">car</span></div>
+            <div class="word-tile"><span class="word-icon">🐱</span><span class="word-name">cat</span></div>
+            <div class="word-tile"><span class="word-icon">☁️</span><span class="word-name">cloud</span></div>
+            <div class="word-tile"><span class="word-icon">👁️</span><span class="word-name">eye</span></div>
+            <div class="word-tile"><span class="word-icon">🔑</span><span class="word-name">key</span></div>
+            <div class="word-tile"><span class="word-icon">🌙</span><span class="word-name">moon</span></div>
+            <div class="word-tile"><span class="word-icon">🍄</span><span class="word-name">mushroom</span></div>
+            <div class="word-tile"><span class="word-icon">✉️</span><span class="word-name">envelope</span></div>
+            <div class="word-tile"><span class="word-icon">⚡</span><span class="word-name">lightning</span></div>
+            <div class="word-tile"><span class="word-icon">😊</span><span class="word-name">smiley face</span></div>
+            <div class="word-tile"><span class="word-icon">🌈</span><span class="word-name">rainbow</span></div>
+            <div class="word-tile"><span class="word-icon">🪜</span><span class="word-name">ladder</span></div>
+            <div class="word-tile"><span class="word-icon">🍦</span><span class="word-name">ice cream</span></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-yellow" data-close="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POPUP 5: "Meet the Model" (Opened by Tile 5) -->
+    <div class="modal-backdrop hidden" id="modalAboutModel" role="dialog" aria-modal="true" aria-labelledby="aboutModelModalTitle">
+      <div class="notebook-modal modal-large">
+        <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="aboutModelModalTitle">🧠 Meet the AI Model</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            A Convolutional Neural Network (CNN) built in Google Colab and trained on <strong>100,000 Google Quick, Draw! sketches</strong> (5,000 per class across 20 categories). The browser extracts the drawing into a 28×28 grayscale tensor and evaluates it live via TensorFlow.js with <strong>97.0% validation accuracy</strong>.
+          </p>
+
+          <div class="model-specs-grid">
+            <div class="spec-cell">
+              <span class="spec-lbl">Input Format</span>
+              <span class="spec-val">28 × 28 Grayscale</span>
+            </div>
+            <div class="spec-cell">
+              <span class="spec-lbl">Categories</span>
+              <span class="spec-val">20 Doodle Classes</span>
+            </div>
+            <div class="spec-cell">
+              <span class="spec-lbl">Training Dataset</span>
+              <span class="spec-val">100,000 Sketches</span>
+            </div>
+            <div class="spec-cell">
+              <span class="spec-lbl">Validation Accuracy</span>
+              <span class="spec-val">97.0% Accuracy</span>
+            </div>
+            <div class="spec-cell">
+              <span class="spec-lbl">Inference Frequency</span>
+              <span class="spec-val">Every 600 ms</span>
+            </div>
+            <div class="spec-cell">
+              <span class="spec-lbl">Win Threshold</span>
+              <span class="spec-val">≥ 70% Confidence</span>
+            </div>
+          </div>
+
+          <div class="model-pipeline-box">
+            <h4 class="pipeline-title">🔬 Preprocessing Pipeline (Identical to Colab)</h4>
+            <div class="pipeline-steps-list">
+              <div class="p-step">1. Transparent Alpha Channel Readout (640×480)</div>
+              <div class="p-step">2. Tight Bounding Box Crop of Active Strokes</div>
+              <div class="p-step">3. Square Aspect Ratio with 10% Edge Margin</div>
+              <div class="p-step">4. Area-Interpolation Downscale to 28×28 Grayscale</div>
+              <div class="p-step">5. Normalized Tensor (0.0 to 1.0) &rarr; CNN Softmax Output</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-yellow" data-close="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POPUP 6: "Leaderboard" (Opened by Nav Leaderboard) -->
+    <div class="modal-backdrop hidden" id="modalLeaderboard" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
+      <div class="notebook-modal modal-large">
+        <div class="washi-tape washi-tape-right" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="leaderboardTitle">🏆 Top 10 Leaderboard</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="leaderboard-summary">
+            <div class="summary-stat-box box-human">
+              <span class="box-stat-val" id="boardHumanWins">0</span>
+              <span class="box-stat-label">Human Wins</span>
+            </div>
+            <div class="summary-stat-box box-model">
+              <span class="box-stat-val" id="boardAiWins">0</span>
+              <span class="box-stat-label">AI Wins</span>
+            </div>
+            <div class="summary-stat-box box-ties">
+              <span class="box-stat-val" id="boardTies">0</span>
+              <span class="box-stat-label">Ties</span>
+            </div>
+            <div class="summary-stat-box box-rate">
+              <span class="box-stat-val" id="boardWinRate">0%</span>
+              <span class="box-stat-label">Human Win Rate</span>
+            </div>
+          </div>
+
+          <div class="records-subhead">Top 10 Scores by Player</div>
+          <div class="table-wrap leaderboard-table-wrap">
+            <table class="notebook-table leaderboard-table">
+              <thead>
+                <tr>
+                  <th style="width: 75px;">Rank</th>
+                  <th>Player</th>
+                  <th>Score</th>
+                  <th>Result</th>
+                  <th>Avg Time</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardTableBody">
+                <!-- Dynamically populated top 10 -->
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-history-note hidden" id="leaderboardEmptyNote">
+            No leaderboard scores recorded yet. Play a game to make history!
+          </div>
+          <div class="current-player-outside-note hidden" id="leaderboardCurrentPlayerNote">
+            <!-- If current player is ranked outside top 10, shown here -->
+          </div>
+        </div>
+        <div class="modal-footer modal-footer-split">
+          <button type="button" class="btn btn-card-action btn-sm" id="btnClearLeaderboard">Clear leaderboard 🗑️</button>
+          <button type="button" class="btn btn-yellow" data-close="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POPUP 7: "Team" (Opened by Nav Team) -->
+    <div class="modal-backdrop hidden" id="modalTeam" role="dialog" aria-modal="true" aria-labelledby="teamModalTitle">
+      <div class="notebook-modal">
+        <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+        <div class="modal-header">
+          <h2 id="teamModalTitle">👥 Meet the Team</h2>
+          <button type="button" class="modal-close-btn" data-close="modal" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="team-intro">
+            Built as part of the <strong>Computer Vision Bootcamp | Final Project</strong>. GuessWhat brings Google Quick, Draw! CNN recognition to real-time air-drawing gameplay!
+          </p>
+
+          <div class="team-grid">
+            <div class="team-card card-razan">
+              <div class="member-avatar">👩‍💻</div>
+              <div class="member-name">Razan Almasoud</div>
+              <div class="member-actions">
+                <a href="#" id="linkRazanLinkedIn" class="btn-linkedin" target="_blank" rel="noopener" aria-label="Razan Almasoud on LinkedIn" title="Razan Almasoud on LinkedIn">
+                  <svg class="linkedin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.784 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="team-card card-joud">
+              <div class="member-avatar">👩‍💻</div>
+              <div class="member-name">Joud Alaskar</div>
+              <div class="member-actions">
+                <a href="#" id="linkJoudLinkedIn" class="btn-linkedin" target="_blank" rel="noopener" aria-label="Joud Alaskar on LinkedIn" title="Joud Alaskar on LinkedIn">
+                  <svg class="linkedin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.784 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="team-card card-hayat">
+              <div class="member-avatar">👩‍💻</div>
+              <div class="member-name">Hayat Fageeh</div>
+              <div class="member-actions">
+                <a href="#" id="linkHayatLinkedIn" class="btn-linkedin" target="_blank" rel="noopener" aria-label="Hayat Fageeh on LinkedIn" title="Hayat Fageeh on LinkedIn">
+                  <svg class="linkedin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.784 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="model-meta-callout">
+            <span class="callout-icon">🧠</span>
+            <div class="callout-text">
+              <strong>About the Model:</strong> Trained on 100,000 drawings (5,000 per class) across 20 categories from Google Quick, Draw! with 97.0% test accuracy.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-yellow" data-close="modal">Awesome! 🚀</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Core AI & Application Modules (predict.js untouched, normal script tags) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="js/predict.js"></script>
+  <script src="js/drawing.js"></script>
+  <script src="js/handTracking.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

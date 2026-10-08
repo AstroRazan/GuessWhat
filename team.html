@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Meet the Team — GuessWhat</title>
+  <meta name="description" content="Meet the team behind GuessWhat — Computer Vision Bootcamp Final Project">
+
+  <!-- =========================================================================
+       TEAM LINKEDIN LINKS — Update these 3 constants when URLs are ready:
+       ========================================================================= -->
+  <script>
+    const RAZAN_LINKEDIN = "#";
+    const JOUD_LINKEDIN  = "#";
+    const HAYAT_LINKEDIN = "#";
+  </script>
+
+  <!-- Google Fonts: Baloo 2 (friendly display) & Nunito (rounded sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .team-page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+    }
+    .team-page-container {
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .team-page-card {
+      position: relative;
+      background: var(--card-bg);
+      border: var(--border-thick);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card-lg);
+      padding: 32px 28px;
+    }
+    .team-page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .team-page-header h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--ink-dark);
+      margin: 0;
+    }
+    .btn-back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="site-wrapper">
+    <!-- Top Nav Header -->
+    <header class="site-header">
+      <div class="header-container">
+        <a href="index.html" class="brand-link">
+          <span class="brand-pencil" aria-hidden="true">✏️</span>
+          <span class="brand-name">GuessWhat</span>
+        </a>
+        <nav class="nav-links">
+          <a href="index.html" class="btn btn-yellow btn-back-home">
+            <span>🏠</span>
+            <span>Back to Game</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="team-page-wrapper">
+      <div class="team-page-container">
+        <div class="team-page-card">
+          <div class="washi-tape washi-tape-left" aria-hidden="true"></div>
+          
+          <div class="team-page-header">
+            <h1>👥 Meet the Team</h1>
+            <a href="index.html" class="btn btn-sm btn-yellow btn-back-home">
+              <span>🏠</span>
+              <span>Home</span>
+            </a>
+          </div>
+
+          <!-- General Information -->
+          <p class="team-intro">
+            Built as part of the <strong>Computer Vision Bootcamp | Final Project</strong>. GuessWhat brings Google Quick, Draw! CNN recognition to real-time air-drawing gameplay!
+          </p>
+
+          <!-- 3 Team Cards (1 row on desktop, 1 column on mobile) -->
+          <div class="team-grid">
+            <div class="team-card card-razan">
+              <div class="member-avatar">👩‍💻</div>
+              <div class="member-name">Razan Almasoud</div>
+              <div class="member-actions">
+                <a href="#" id="linkRazanLinkedIn" class="btn-linkedin" target="_blank" rel="noopener" aria-label="Razan Almasoud on LinkedIn" title="Razan Almasoud on LinkedIn">
+                  <svg class="linkedin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.784 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="team-card card-joud">
+              <div class="member-avatar">👩‍💻</div>
+              <div class="member-name">Joud Alaskar</div>
+              <div class="member-actions">
+                <a href="#" id="linkJoudLinkedIn" class="btn-linkedin" target="_blank" rel="noopener" aria-label="Joud Alaskar on LinkedIn" title="Joud Alaskar on LinkedIn">
+                  <svg class="linkedin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.784 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="team-card card-hayat">
+              <div class="member-avatar">👩‍💻</div>
+              <div class="member-name">Hayat Fageeh</div>
+              <div class="member-actions">
+                <a href="#" id="linkHayatLinkedIn" class="btn-linkedin" target="_blank" rel="noopener" aria-label="Hayat Fageeh on LinkedIn" title="Hayat Fageeh on LinkedIn">
+                  <svg class="linkedin-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.784 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- General Information: About the Model Callout -->
+          <div class="model-meta-callout">
+            <span class="callout-icon">🧠</span>
+            <div class="callout-text">
+              <strong>About the Model:</strong> Trained on 100,000 drawings (5,000 per class) across 20 categories from Google Quick, Draw! with 97.0% test accuracy.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Wire up LinkedIn constants to link anchors
+    document.addEventListener('DOMContentLoaded', () => {
+      const linkRazan = document.getElementById('linkRazanLinkedIn');
+      const linkJoud = document.getElementById('linkJoudLinkedIn');
+      const linkHayat = document.getElementById('linkHayatLinkedIn');
+      if (linkRazan && typeof RAZAN_LINKEDIN !== 'undefined') linkRazan.href = RAZAN_LINKEDIN;
+      if (linkJoud && typeof JOUD_LINKEDIN !== 'undefined') linkJoud.href = JOUD_LINKEDIN;
+      if (linkHayat && typeof HAYAT_LINKEDIN !== 'undefined') linkHayat.href = HAYAT_LINKEDIN;
+    });
+  </script>
+</body>
+</html>
