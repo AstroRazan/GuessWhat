@@ -133,8 +133,8 @@ Then open `http://localhost:8000`. The camera works on `localhost` and on HTTPS.
 
 | | |
 |---|---|
-| **Razan Almasoud** | [LinkedIn](linkedin.com/in/razanalmasoud) |
-| **Joud Alaskar** | [LinkedIn](linkedin.com/in/joudyasser) |
-| **Hayat Fageeh** | [LinkedIn](linkedin.com/in/hayat-fageeh-8a6732325) |
+| **Razan Almasoud** | [LinkedIn](https://www.linkedin.com/in/razanalmasoud) |
+| **Joud Alaskar** | [LinkedIn](https://www.linkedin.com/in/joudyasser) |
+| **Hayat Fageeh** | [LinkedIn](https://www.linkedin.com/in/hayat-fageeh-8a6732325) |
 
-**Instructor:** Asmaa Alzobidi · [LinkedIn](linkedin.com/in/asma-al-zobidi-9576a5266)
+**Instructor:** Asmaa Alzobidi · [LinkedIn](https://www.linkedin.com/in/asma-al-zobidi-9576a5266)
